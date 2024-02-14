@@ -1,0 +1,3 @@
+buildCommand: go build -tags netgo -ldflags '-s -w' -o app
+buildEnvironment:
+  goVersion: 1.22.0
