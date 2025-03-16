@@ -29,17 +29,13 @@ func main() {
 		}
 		defer file.Close()
 
-		// Buffer for storing uploaded PDF data
 		buf := bytes.NewBuffer(nil)
-
-		// Copy uploaded data to buffer
 		_, err = io.Copy(buf, file)
 		if err != nil {
 			http.Error(w, "Error copying file data", _500)
 			return
 		}
 
-		// Create command with pipes
 		cmd := exec.Command("pdftotext", "-", "-")
 		stdin, err := cmd.StdinPipe()
 		if err != nil {
@@ -55,14 +51,13 @@ func main() {
 		}
 		defer stdout.Close()
 
-		// Start the command
 		err = cmd.Start()
 		if err != nil {
 			http.Error(w, "Error starting pdftotext", _500)
 			return
 		}
 
-		// Write uploaded data to stdin
+		// Writing uploaded data to stdin
 		_, err = stdin.Write(buf.Bytes())
 		if err != nil {
 			http.Error(w, "Error writing to pdftotext stdin", _500)
@@ -70,14 +65,15 @@ func main() {
 		}
 		stdin.Close()
 
-		// Read extracted text from stdout
+		// Reading extracted text from stdout
 		text, err := io.ReadAll(stdout)
 		if err != nil {
 			http.Error(w, "Error reading extracted text", _500)
 			return
 		}
 
-		//? Replacing newlines with spaces -- can degrade performance for larger documents!
+		// Replacing newlines with spaces.
+		// Can affect performance for larger documents!
 		text = []byte(strings.ReplaceAll(string(text), "\n", " "))
 
 		w.WriteHeader(http.StatusOK)
